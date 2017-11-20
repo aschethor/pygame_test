@@ -75,7 +75,7 @@ with tf.Session() as sess:
             # We'll draw points as a scatter plot just like before
             # Except we'll also scale the alpha value so that it gets
             # darker as the iterations get closer to the end
-            ax.plot(xs, ys_pred, 'k', alpha=it_i / n_iterations)
+            ax.plot(xs, ys_pred, 'k')#, alpha=it_i / n_iterations)
             fig.show()
             plt.draw()
 
@@ -97,10 +97,17 @@ def train(X, Y, Y_pred, n_iterations=100, batch_size=200, learning_rate=0.02):
     ax.set_xlim([-4, 4])
     ax.set_ylim([-2, 2])
     with tf.Session() as sess:
+
+
         # Here we tell tensorflow that we want to initialize all
         # the variables in the graph so we can use them
         # This will set W and b to their initial random normal value.
         sess.run(tf.global_variables_initializer())
+
+
+        # for tensorboard:
+        summary_writer = tf.summary.FileWriter('/home/aschethor/PycharmProjects/pygame_test/tensorboard_logs',graph=tf.get_default_graph())
+        summary_writer.add_graph(tf.get_default_graph())
 
         # We now run a loop over epochs
         prev_training_cost = 0.0
@@ -110,12 +117,13 @@ def train(X, Y, Y_pred, n_iterations=100, batch_size=200, learning_rate=0.02):
             for batch_i in range(n_batches):
                 idxs_i = idxs[(batch_i * batch_size):((batch_i + 1) * batch_size)] # (from index) : (to index + 1)
                 sess.run(optimizer, feed_dict={X: xs[idxs_i], Y: ys[idxs_i]})
+                #summary_writer.add_summary(summary,it_i)
 
             training_cost = sess.run(cost, feed_dict={X: xs, Y: ys})
 
             if it_i % 10 == 0:
                 ys_pred = Y_pred.eval(feed_dict={X: xs}, session=sess)
-                ax.plot(xs, ys_pred, 'k', alpha=it_i / n_iterations)
+                ax.plot(xs, ys_pred, 'k')#, alpha=it_i / n_iterations)
                 print(training_cost)
     fig.show()
     plt.draw()
@@ -138,3 +146,6 @@ Y_pred = tf.reduce_sum(h, 1)
 # Retrain with our new Y_pred
 train(X, Y, Y_pred)
 plt.show()
+
+# run tensorboard:
+# tensorboard --logdir=/home/aschethor/PycharmProjects/pygame_test/tensorboard_logs
