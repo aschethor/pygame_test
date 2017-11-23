@@ -1,3 +1,5 @@
+# least square fitting of a sinus function
+
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
@@ -22,9 +24,18 @@ with tf.name_scope(name="sinus_model"):
 with tf.name_scope(name="rms_error"):
     cost = tf.sqrt(tf.reduce_mean(tf.square(predictedY-outputY)),name="cost")
 
+# create TensorFlow session
+
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
-    hyperparameter = 'run2'
+
+    # define optimizer
+
+    optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.1,name="optimizer").minimize(loss=cost)
+
+    # create FileWriter + summary for TensorBoard
+
+    hyperparameter = 'run1'
     summary_writer = tf.summary.FileWriter('C:/Users/NiWa/PycharmProjects/pygame_test/tensorboard_logs/test3/'+hyperparameter,tf.get_default_graph())
 
     tf.summary.scalar(name="cost",tensor=cost)
@@ -32,10 +43,15 @@ with tf.Session() as sess:
     tf.summary.scalar(name="phase",tensor=phase)
     summary_all = tf.summary.merge_all()
 
-    optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.1).minimize(loss=cost)
+    # train model
+
     for i in range(200):
         _,s = sess.run([optimizer,summary_all],feed_dict={inputX:X[[i,200+i,400+i,600+i]],outputY:Y[[i,200+i,400+i,600+i]]})
+        if i == 100:
+            sess.run(factor.assign(1))
         summary_writer.add_summary(s,i)
+
+    # plot data + result
 
     plt.plot(X,Y,'r+',X,factor.eval(sess)*np.sin(X+phase.eval(sess)))
     plt.show()
